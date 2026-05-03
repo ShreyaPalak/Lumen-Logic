@@ -18,6 +18,7 @@ const LiquidShader = () => {
 
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
+    uMouse: { value: new THREE.Vector2(0.5, 0.5) },
     // A deep charcoal/slate color for a premium dark mode
     uColor: { value: new THREE.Color("#111111") } 
   }), []);

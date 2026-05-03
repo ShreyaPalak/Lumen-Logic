@@ -30,9 +30,10 @@ export default function ImmersiveHero() {
     // Synchronize Lenis with GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    const ticker = (time: number) => {
       lenis.raf(time * 1000);
-    });
+    };
+    gsap.ticker.add(ticker);
     gsap.ticker.lagSmoothing(0);
 
     // 2. Initial Text Reveal Animation (The "Load" state)
@@ -84,6 +85,7 @@ gsap.to(".line-2", {
 
     // Cleanup Lenis on unmount
     return () => {
+      gsap.ticker.remove(ticker);
       lenis.destroy();
     };
   }, { scope: containerRef });
@@ -112,12 +114,12 @@ gsap.to(".line-2", {
       >
         {/* We use an overflow-hidden wrapper so the text "slides up" from nothing */}
         <div className="overflow-hidden">
-          <h1 className="hero-line text-[8vw] leading-[0.85] font-black uppercase tracking-tighter m-0">
+          <h1 className="hero-line line-1 text-[8vw] leading-[0.85] font-black uppercase tracking-tighter m-0">
             Digital
           </h1>
         </div>
         <div className="overflow-hidden">
-          <h1 className="hero-line text-[8vw] leading-[0.85] font-black uppercase tracking-tighter m-0">
+          <h1 className="hero-line line-2 text-[8vw] leading-[0.85] font-black uppercase tracking-tighter m-0">
             Experiences
           </h1>
         </div>
