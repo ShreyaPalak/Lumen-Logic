@@ -1,6 +1,7 @@
 import Image from "next/image";
 import ImmersiveHero from '@/app/components/sections/Hero';
 import StoryScroll from '@/app/components/sections/StoryScroll';
+import HorizontalGallery from '@/app/components/sections/HorizontalGallery';
 
 export default function Home() {
   return (
@@ -18,6 +19,14 @@ export default function Home() {
       </section>
 
       <StoryScroll />
+      
+      {/* New Interactive Horizontal Showcase */}
+      <HorizontalGallery />
+      
+      {/* Very basic footer spacing to allow the user to scroll past the gallery */}
+      <footer className="h-[50vh] bg-black text-white flex items-center justify-center">
+        <h2 className="text-2xl font-light tracking-widest uppercase text-zinc-600">The End</h2>
+      </footer>
     </div>
   );
 }
