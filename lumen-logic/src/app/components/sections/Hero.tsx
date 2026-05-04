@@ -51,24 +51,24 @@ export default function ImmersiveHero() {
       }
     );
     gsap.to(".line-1", {
-  x: -100, // Moves left
-  scrollTrigger: {
-    scrub: true,
-    trigger: containerRef.current,
-    start: "top top",
-    end: "bottom top"
-  }
-});
+      x: -100, // Moves left
+      scrollTrigger: {
+        scrub: true,
+        trigger: containerRef.current,
+        start: "top top",
+        end: "bottom top"
+      }
+    });
 
-gsap.to(".line-2", {
-  x: 100, // Moves right
-  scrollTrigger: {
-    scrub: true,
-    trigger: containerRef.current,
-    start: "top top",
-    end: "bottom top"
-  }
-});
+    gsap.to(".line-2", {
+      x: 100, // Moves right
+      scrollTrigger: {
+        scrub: true,
+        trigger: containerRef.current,
+        start: "top top",
+        end: "bottom top"
+      }
+    });
 
     // 3. Image Scaling Scrollytelling (Parallax Effect)
     // Image grows in scale as the user scrolls down
@@ -91,8 +91,8 @@ gsap.to(".line-2", {
   }, { scope: containerRef });
 
   return (
-    <section 
-      ref={containerRef} 
+    <section
+      ref={containerRef}
       className="relative w-full h-screen overflow-hidden bg-[#0a0a0a] text-[#f4f4f4]"
     >
       {/* Background Image Container */}
@@ -108,7 +108,7 @@ gsap.to(".line-2", {
       </div>
 
       {/* Kinetic Typography Foreground */}
-      <div 
+      <div
         ref={textWrapperRef}
         className="relative z-10 flex flex-col items-center justify-center h-full mix-blend-difference"
       >

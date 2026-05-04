@@ -70,7 +70,7 @@ const LiquidShader = () => {
 export default function LiquidBackground() {
   return (
     // Positioned absolutely behind your main content
-    <div className="absolute inset-0 w-full h-screen z-[-1] bg-black overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 w-full h-screen z-[-1] bg-black overflow-hidden pointer-events-none">
       <Canvas camera={{ position: [0, 0, 3], fov: 75 }}>
         {/* Ambient lighting (though shaders handle their own color mostly) */}
         <ambientLight intensity={0.5} />

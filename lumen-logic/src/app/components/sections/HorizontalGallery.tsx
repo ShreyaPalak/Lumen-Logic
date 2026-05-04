@@ -42,52 +42,31 @@ export default function HorizontalGallery() {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // FIXED: Measure actual DOM elements instead of calculating widths
-    // This automatically handles padding, gaps, responsive sizes, etc.
-    const calculateScrollDistance = () => {
-      const cards = container.querySelectorAll('[data-card]');
-      if (cards.length === 0) return 0;
-
-      const lastCard = cards[cards.length - 1];
-
-      // How far does the last card extend beyond the viewport?
-      // offsetLeft = distance from container's left edge
-      // offsetWidth = card's actual rendered width (accounts for min-w)
-      // window.innerWidth = viewport width
-      const lastCardEnd = lastCard.offsetLeft + lastCard.offsetWidth;
-      const scrollNeeded = lastCardEnd - window.innerWidth;
-
-      // Return negative because we're translating the container LEFT
-      return -scrollNeeded;
-    };
-
-    // Set up GSAP animation
+    // We MUST use a Javascript function here (not a CSS string) so that GSAP knows 
+    // to dynamically recalculate this value every time the window resizes or refreshes.
     gsap.to(container, {
-      x: calculateScrollDistance,
+      x: () => -(container.scrollWidth - window.innerWidth),
       ease: "none",
       scrollTrigger: {
         trigger: sectionRef.current,
         start: "top top",
-        // Multiplier: how much vertical scroll = horizontal movement
-        // Adjust the 1.5 value to make scrolling feel faster/slower
-        end: () => {
-          const distance = Math.abs(calculateScrollDistance());
-          return `+=${distance * 1.5}`;
-        },
+        // Force the vertical scroll duration to match the horizontal distance
+        end: () => `+=${container.scrollWidth}`,
         pin: true,
         scrub: 1,
         invalidateOnRefresh: true,
-        onRefresh: () => {
-          // Recalculate on window resize
-          gsap.set(container, { x: calculateScrollDistance });
-        }
       }
     });
 
-    // Cleanup
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
+    // CRITICAL FIX: Next.js paints initial DOM dimensions incorrectly during the 
+    // first render frame (temporarily collapsing flex containers). 
+    // A 500ms delay guarantees the browser has fully expanded the 40vw cards 
+    // before GSAP locks in the final scrollWidth.
+    const timeout = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 500);
+
+    return () => clearTimeout(timeout);
   }, { scope: sectionRef });
 
   return (
@@ -110,7 +89,7 @@ export default function HorizontalGallery() {
           <div
             key={project.id}
             data-card
-            className="group relative w-[80vw] min-w-[80vw] md:w-[40vw] md:min-w-[40vw] h-[60vh] shrink-0 overflow-hidden cursor-pointer"
+            className="group relative w-[80vw] md:w-[40vw] h-[60vh] shrink-0 overflow-hidden cursor-pointer"
           >
             {/* Image Container with Parallax inner scale effect on hover */}
             <div className="w-full h-full overflow-hidden">
