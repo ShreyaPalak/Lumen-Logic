@@ -9,7 +9,7 @@ export default function Home() {
       <ImmersiveHero />
       
       {/* Tagline Transition Section */}
-      <section className="relative w-full py-32 bg-black text-white flex flex-col items-center justify-center text-center px-4">
+      <section className="relative w-full py-32 bg-transparent text-white flex flex-col items-center justify-center text-center px-4">
         <p className="text-zinc-500 font-mono text-sm tracking-[0.2em] uppercase mb-6">
           The Philosophy
         </p>

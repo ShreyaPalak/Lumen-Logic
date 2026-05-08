@@ -81,7 +81,7 @@ export default function StoryScroll() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full bg-black text-white px-8 md:px-16"
+      className="relative w-full bg-transparent text-white px-8 md:px-16"
     >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row relative">
 

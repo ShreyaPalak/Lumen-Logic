@@ -93,7 +93,7 @@ export default function ImmersiveHero() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden bg-[#0a0a0a] text-[#f4f4f4]"
+      className="relative w-full h-screen overflow-hidden bg-transparent text-[#f4f4f4]"
     >
       {/* Background Image Container */}
       <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
@@ -101,10 +101,10 @@ export default function ImmersiveHero() {
           ref={imageRef}
           src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop"
           alt="Cinematic abstract texture"
-          className="w-full h-full object-cover transform origin-center"
+          className="w-full h-full object-cover transform origin-center opacity-40 mix-blend-luminosity"
         />
         {/* Dark overlay for contrast */}
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
       {/* Kinetic Typography Foreground */}
@@ -115,12 +115,12 @@ export default function ImmersiveHero() {
         {/* We use an overflow-hidden wrapper so the text "slides up" from nothing */}
         <div className="overflow-hidden">
           <h1 className="hero-line line-1 text-[8vw] leading-[0.85] font-black uppercase tracking-tighter m-0">
-            Digital
+            Lumen
           </h1>
         </div>
         <div className="overflow-hidden">
           <h1 className="hero-line line-2 text-[8vw] leading-[0.85] font-black uppercase tracking-tighter m-0">
-            Experiences
+            Logic
           </h1>
         </div>
       </div>

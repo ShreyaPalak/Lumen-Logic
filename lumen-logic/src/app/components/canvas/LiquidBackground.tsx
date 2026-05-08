@@ -8,57 +8,81 @@ import * as THREE from 'three';
 const LiquidShader = () => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  // useFrame runs on every monitor refresh (60fps/120fps)
+  // Track mouse position
   useFrame((state) => {
     if (materialRef.current) {
-      // Pass the elapsed time to the shader to animate the waves
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+      
+      // Smoothly interpolate mouse position for a "fluid" feel
+      const { x, y } = state.mouse;
+      materialRef.current.uniforms.uMouse.value.x = THREE.MathUtils.lerp(
+        materialRef.current.uniforms.uMouse.value.x,
+        (x + 1) / 2,
+        0.1
+      );
+      materialRef.current.uniforms.uMouse.value.y = THREE.MathUtils.lerp(
+        materialRef.current.uniforms.uMouse.value.y,
+        (y + 1) / 2,
+        0.1
+      );
     }
   });
 
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-    // A deep charcoal/slate color for a premium dark mode
-    uColor: { value: new THREE.Color("#111111") } 
+    uColor: { value: new THREE.Color("#050505") }, // Darker base
+    uHighlightColor: { value: new THREE.Color("#1a1a1a") } // Slightly lighter highlights
   }), []);
 
   return (
-    <mesh>
-      {/* A plane with many segments so it has geometry to bend */}
-      <planeGeometry args={[15, 15, 128, 128]} />
+    <mesh rotation={[-Math.PI / 4, 0, 0]}>
+      <planeGeometry args={[20, 20, 128, 128]} />
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
-        // The Vertex Shader: Bends the 3D geometry using sine waves
+        transparent
         vertexShader={`
           uniform float uTime;
           varying vec2 vUv;
+          varying float vElevation;
           
           void main() {
             vUv = uv;
             vec3 pos = position;
             
-            // Create liquid distortion based on X/Y coordinates and Time
-            float elevation = sin(pos.x * 1.5 + uTime * 0.5) * 0.5;
-            elevation += cos(pos.y * 1.5 + uTime * 0.4) * 0.5;
+            // Complex wave interference
+            float elevation = sin(pos.x * 1.2 + uTime * 0.7) * 0.4;
+            elevation += cos(pos.y * 1.2 + uTime * 0.6) * 0.4;
+            elevation += sin(pos.x * 2.0 + pos.y * 2.0 + uTime * 0.5) * 0.2;
+            
             pos.z += elevation;
+            vElevation = elevation; // Pass to fragment shader
             
             gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
           }
         `}
-        // The Fragment Shader: Paints the pixels, adding slight shading to the peaks
         fragmentShader={`
           uniform vec3 uColor;
+          uniform vec3 uHighlightColor;
           uniform vec2 uMouse;
           varying vec2 vUv;
+          varying float vElevation;
           
           void main() {
-            // Slight gradient based on the UV coordinates
-            float dist = distance(vUv, uMouse);
-  float strength = smoothstep(0.5, 0.0, dist);
-            vec3 color = uColor + vec3(vUv.y * 0.05); 
-            gl_FragColor = vec4(color, 1.0);
+            // Mouse interaction: create a glow around the cursor
+            float mouseDist = distance(vUv, uMouse);
+            float mouseGlow = smoothstep(0.4, 0.0, mouseDist) * 0.15;
+            
+            // Mix colors based on elevation (peaks are lighter)
+            float mixStrength = (vElevation + 1.0) * 0.5;
+            vec3 finalColor = mix(uColor, uHighlightColor, mixStrength);
+            
+            // Add mouse glow and slight UV gradient for depth
+            finalColor += mouseGlow;
+            finalColor += vec3(vUv.x, vUv.y, 1.0) * 0.02;
+            
+            gl_FragColor = vec4(finalColor, 1.0);
           }
         `}
       />

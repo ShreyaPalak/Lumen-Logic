@@ -42,29 +42,37 @@ export default function HorizontalGallery() {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // We MUST use a Javascript function here (not a CSS string) so that GSAP knows 
-    // to dynamically recalculate this value every time the window resizes or refreshes.
-    gsap.to(container, {
-      x: () => -(container.scrollWidth - window.innerWidth),
-      ease: "none",
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top top",
-        // Force the vertical scroll duration to match the horizontal distance
-        end: () => `+=${container.scrollWidth}`,
-        pin: true,
-        scrub: 1,
-        invalidateOnRefresh: true,
-      }
-    });
-
-    // CRITICAL FIX: Next.js paints initial DOM dimensions incorrectly during the 
-    // first render frame (temporarily collapsing flex containers). 
-    // A 500ms delay guarantees the browser has fully expanded the 40vw cards 
-    // before GSAP locks in the final scrollWidth.
     const timeout = setTimeout(() => {
+      const cards = Array.from(container.querySelectorAll('[data-card]')) as HTMLElement[];
+
+      // Calculate total width manually to bypass browser scrollWidth bugs
+      let totalWidth = 0;
+      cards.forEach((card, i) => {
+        totalWidth += card.offsetWidth;
+        if (i < cards.length - 1) {
+          totalWidth += 148; // Add the 2rem (32px) gap
+        }
+      });
+
+      // Add the padding from both sides (px-8 or px-32)
+      const padding = window.innerWidth >= 768 ? 256 : 64;
+      const scrollDistance = totalWidth + padding - document.documentElement.clientWidth;
+
+      gsap.to(container, {
+        x: -scrollDistance,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: () => `+=${scrollDistance}`,
+          pin: true,
+          scrub: 1,
+          invalidateOnRefresh: true,
+        }
+      });
+
       ScrollTrigger.refresh();
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timeout);
   }, { scope: sectionRef });
@@ -72,7 +80,7 @@ export default function HorizontalGallery() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-screen w-full bg-[#0a0a0a] overflow-hidden pt-[20vh]"
+      className="relative h-screen w-full bg-transparent overflow-hidden pt-[20vh]"
     >
       <div className="absolute top-16 left-8 md:left-16 z-10 text-white">
         <h2 className="text-4xl md:text-6xl font-light tracking-tighter mix-blend-difference">
