@@ -1,29 +1,37 @@
 'use client';
 
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 
 // 1. The Custom Shader Material
 const LiquidShader = () => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  // Track mouse position
+  const targetMouse = useRef({ x: 0.5, y: 0.5 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      targetMouse.current.x = e.clientX / window.innerWidth;
+      targetMouse.current.y = 1.0 - (e.clientY / window.innerHeight);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
       
-      // Smoothly interpolate mouse position for a "fluid" feel
-      const { x, y } = state.mouse;
       materialRef.current.uniforms.uMouse.value.x = THREE.MathUtils.lerp(
         materialRef.current.uniforms.uMouse.value.x,
-        (x + 1) / 2,
-        0.1
+        targetMouse.current.x,
+        0.05
       );
       materialRef.current.uniforms.uMouse.value.y = THREE.MathUtils.lerp(
         materialRef.current.uniforms.uMouse.value.y,
-        (y + 1) / 2,
-        0.1
+        targetMouse.current.y,
+        0.05
       );
     }
   });
@@ -44,6 +52,7 @@ const LiquidShader = () => {
         transparent
         vertexShader={`
           uniform float uTime;
+          uniform vec2 uMouse;
           varying vec2 vUv;
           varying float vElevation;
           
@@ -55,6 +64,20 @@ const LiquidShader = () => {
             float elevation = sin(pos.x * 1.2 + uTime * 0.7) * 0.4;
             elevation += cos(pos.y * 1.2 + uTime * 0.6) * 0.4;
             elevation += sin(pos.x * 2.0 + pos.y * 2.0 + uTime * 0.5) * 0.2;
+            
+            // Mouse Interaction: Ripples and Tears
+            // Map uMouse to the plane's UV coordinates to find distance
+            float mouseDist = distance(uv, uMouse);
+            
+            // 1. The Tear: drastically push the fabric down near the mouse
+            float tear = smoothstep(0.15, 0.0, mouseDist) * 2.5;
+            
+            // 2. The Ripple: expanding waves originating from the mouse
+            float ripple = sin(mouseDist * 30.0 - uTime * 8.0) * 0.4;
+            ripple *= smoothstep(0.4, 0.0, mouseDist); // Fade ripple out over distance
+            
+            elevation -= tear;
+            elevation += ripple;
             
             pos.z += elevation;
             vElevation = elevation; // Pass to fragment shader
@@ -72,10 +95,13 @@ const LiquidShader = () => {
           void main() {
             // Mouse interaction: create a glow around the cursor
             float mouseDist = distance(vUv, uMouse);
-            float mouseGlow = smoothstep(0.4, 0.0, mouseDist) * 0.15;
+            float mouseGlow = smoothstep(0.3, 0.0, mouseDist) * 0.2;
             
-            // Mix colors based on elevation (peaks are lighter)
-            float mixStrength = (vElevation + 1.0) * 0.5;
+            // Deep tears should be darker, peaks should be lighter
+            // vElevation goes very negative at the tear (e.g. -2.5)
+            float mixStrength = (vElevation + 1.5) * 0.4; 
+            mixStrength = clamp(mixStrength, 0.0, 1.0);
+            
             vec3 finalColor = mix(uColor, uHighlightColor, mixStrength);
             
             // Add mouse glow and slight UV gradient for depth
